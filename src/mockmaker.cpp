@@ -13,7 +13,6 @@
 #include <cstring>
 #include <cstdio>
 #include <vector>
-#include <format>
 #include <set>
 #include <map>
 #include <clang-c/Index.h>
@@ -293,7 +292,7 @@ ParseResult make_mock(int argc, char **argv) {
  * Program entry point: Check arguments, invoke parser, print output to stdout.
  */
 int main(int argc, char **argv) {
-  if (argc < 4) {
+  if (argc < 4 || strcmp(argv[3], "--") == 0) {
     cerr << "Usage: " << argv[0]
       << " <template file> <source directory> <output file> [utility header] -- [clang flags]" << endl;
     cerr << "  Set "

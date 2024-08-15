@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
-#include <format>
 #include <string>
 #include <clang-c/Index.h>
 
@@ -57,47 +56,62 @@ struct MockedFunction {
         clang_getCursorSpelling(arg_cursor)
       );
 
+      ostringstream os;
+      os << arg_data_type << (arg_name.empty() ? "" : " ") << arg_name;
+
       arg_types.push_back(arg_data_type);
-      typed_args.push_back(format(
-        "{}{}{}", arg_data_type, arg_name.empty() ? "" : " ", arg_name
-      ));
+      typed_args.push_back(os.str());
       untyped_args.push_back(arg_name);
     }
   }
 
   operator std::string() const {
     if (is_ctor) {
-      return format(
-        "Mock{0}({1}) : {0}({2}) {{}}",
-        name,
-        vec_join(typed_args, ", "),
-        vec_join(untyped_args, ", ")
-      );
+      string typed_str = vec_join(typed_args, ", "),
+             untyped_str = vec_join(untyped_args, ", ");
+
+      ostringstream os;
+      os << "Mock" << name << "(" << typed_str << ") : " << name << "(" << untyped_str << ") {}";
+      return os.str();
     }
 
     // Ugly hack because overloaded operators cannot be mocked with GMock
     if (name.find("operator") != string::npos) {
       uint16_t n = rand();
-      return format(
-        "MOCK_METHOD{0}(Operator{1}, {2}({3}));\n        "
-        "virtual {2} {4}({5}) {{ return Operator{1}({6}); }}",
-        typed_args.size(),
-        n,
-        type,
-        vec_join(arg_types, ", "),
-        name,
-        vec_join(typed_args, ", "),
-        vec_join(untyped_args, ", ")
-      );
+      ostringstream os;
+      os << "MOCK_METHOD"
+         << typed_args.size()
+         << "(Operator"
+         << n
+         << ", "
+         << type
+         << "("
+         << vec_join(arg_types, ", ")
+         << "));\n        virtual "
+         << type
+         << " "
+         << name
+         << "("
+         << vec_join(typed_args, ", ")
+         << ") { return Operator"
+         << n
+         << "("
+         << vec_join(untyped_args, ", ")
+         << "); }";
+      return os.str();
     }
 
-    return format(
-      "MOCK_METHOD{}({}, {}({}));",
-      typed_args.size(),
-      name,
-      type,
-      vec_join(arg_types, ", ")
-    );
+    ostringstream os;
+    os << "MOCK_METHOD"
+       << typed_args.size()
+       << "("
+       << name
+       << ", "
+       << type
+       << "("
+       << vec_join(arg_types, ", ")
+       << "));";
+    return os.str();
   }
 };
 ostream &operator<<(ostream &lhs, const MockedFunction &rhs) {
@@ -123,12 +137,12 @@ struct MockedClass {
     vector<string> &template_params
   ) : name(name) {
     string ns = vec_join(namespaces, "::");
-    qualified_name = format("{}::{}", ns, name);
+    qualified_name = ns + "::" + name;
 
     if (template_params.size() == 0) templ = "";
     else {
       string t = vec_join(template_params, ", ");
-      templ = format("template<{}>\n    ", t);
+      templ = "template<" + t + ">\n    ";
     }
   }
 
@@ -147,17 +161,17 @@ struct MockedClass {
     funcs_str.erase(unique(funcs_str.begin(), funcs_str.end()), funcs_str.end());
     reverse(funcs_str.begin(), funcs_str.end());
 
-    return format(
-      "    {}class Mock{} : public {}\n"
-      "    {{\n"
-      "      public:\n"
-      "        {}\n"
-      "    }};\n",
-      templ,
-      name,
-      qualified_name,
-      vec_join(funcs_str, "\n        ")
-    );
+    ostringstream os;
+    os << "    "
+       << templ
+       << "class Mock"
+       << name
+       << " : public "
+       << qualified_name
+       << "\n    {\n      public:\n        "
+       << vec_join(funcs_str, "\n        ")
+       << "\n    };\n";
+    return os.str();
   }
 };
 ostream &operator<<(ostream &lhs, const MockedClass &rhs) {
