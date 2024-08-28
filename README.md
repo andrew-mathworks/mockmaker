@@ -7,9 +7,9 @@ This project is intended as a replacement for the deprecated [`gmock_gen.py`](ht
 ## Compiling and Running
 
 1. Set up libclang:
-    - Linux/macOS/WSL:  Install LLVM via a package manager (apt, brew, etc.).  If available, install the development version of the package (llvm-XX-dev on Debian/Ubuntu, where XX is a release number).
-        - Example:  apt install llvm-18-dev
-    - Windows:  Download the latest build of Clang + LLVM for Windows from the LLVM Project’s GitHub releases (filename should be in the form clang+llvm-18.1.8-x86_64-pc-windows-msvc.tar.xz).  Extract the archive, and ensure its contents are accessible either by setting the CMAKE_PROGRAM_PATH environment variable to C:\Users\...\llvm_extraction_location\bin or adding this directory to the PATH.  If CMake complains about being unable to find llvm-config, something is still misconfigured.
+    - Linux/macOS/WSL:  Install LLVM via a package manager (apt, brew, etc.).  If available, install the development version of the package (`llvm-XX-dev` on Debian/Ubuntu, where XX is a release number).
+        - Example:  `apt install llvm-18-dev`
+    - Windows:  Download the latest build of Clang + LLVM for Windows from the LLVM Project’s [GitHub releases](https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8) (filename should be in the form `clang+llvm-18.1.8-x86_64-pc-windows-msvc.tar.xz`).  Extract the archive, and ensure its contents are accessible either by setting the `CMAKE_PROGRAM_PATH` environment variable to `C:\Users\...\llvm_extraction_location\bin` or adding this directory to the `PATH`.  If CMake complains about being unable to find `llvm-config`, something is still misconfigured.
     - **Note:  Mockmaker supports any major C++ compiler with support for C++17 (e.g. GCC, Clang, MSVC, etc.).  An LLVM installation is necessary simply to provide libclang’s parsing functionality, compiling the tool with clang itself is not necessary.**
 
 2. Fetch the code:
