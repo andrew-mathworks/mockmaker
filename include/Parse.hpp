@@ -37,7 +37,6 @@ struct ParseResult {
  */
 struct ParseState {
   bool continue_descending = true;
-  bool has_namespace = false;
   string class_name;
   ParseResult *out;
   vector<string> namespaces;

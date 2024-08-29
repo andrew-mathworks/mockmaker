@@ -87,19 +87,13 @@ void visit_entity(CXCursor cursor, CXClientData raw_parse_state = nullptr) {
       }
       break;
     }
-    // Namespace: If name is not "cppmicroservices," stop descending
+    // Namespace: Keep track to reconstruct later
     case CXCursor_Namespace: {
-      if (!next_parse_state.has_namespace && name_str != "cppmicroservices") {
-        next_parse_state.continue_descending = false;
-        return;
-      }
-
       if (SHOW_PRETTY_INFO) {
         cout << "  \x1b[33mNamespace\x1b[0m: " << name_str << endl;
       }
 
       next_parse_state.continue_descending = true;
-      next_parse_state.has_namespace = true;
       next_parse_state.namespaces.push_back(name_str);
       break;
     }
@@ -109,7 +103,6 @@ void visit_entity(CXCursor cursor, CXClientData raw_parse_state = nullptr) {
     case CXCursor_StructDecl:
     case CXCursor_ClassDecl: {
       // TODO: Template parameters
-      if (!next_parse_state.has_namespace) break;
       if (SHOW_PRETTY_INFO) {
         cout << "    \x1b[34mClass\x1b[0m: " << name_str << endl;
       }
@@ -150,7 +143,6 @@ void visit_entity(CXCursor cursor, CXClientData raw_parse_state = nullptr) {
           // Constructors with templates are not identified as constructors
           (kind == CXCursor_FunctionTemplate &&
            name_str == next_parse_state.class_name)) {
-        if (!next_parse_state.has_namespace) break;
         if (SHOW_PRETTY_INFO) {
           print_function_decl(cursor, name_str, 1);
         }
@@ -162,8 +154,7 @@ void visit_entity(CXCursor cursor, CXClientData raw_parse_state = nullptr) {
         next_parse_state.out->n_methods++;
       } else {
         // TODO: Template parameters, non-class functions
-        if (!next_parse_state.has_namespace ||
-            next_parse_state.class_name.empty() ||
+        if (next_parse_state.class_name.empty() ||
             !next_parse_state.out->mocks.count(next_parse_state.class_name)) {
           break;
         }
